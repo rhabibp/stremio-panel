@@ -1,0 +1,725 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Stremio Management Panel - Monitoring Dashboard</title>
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+    <style>
+        body {
+            background-color: #121212;
+            color: #ffffff;
+            font-family: Arial, sans-serif;
+        }
+        .container {
+            max-width: 1200px;
+            margin: 0 auto;
+            padding: 20px;
+        }
+        .card {
+            background-color: #1e1e1e;
+            border: none;
+            margin-bottom: 20px;
+        }
+        .card-header {
+            background-color: #2d2d2d;
+            color: #ffffff;
+            font-weight: bold;
+        }
+        .btn-primary {
+            background-color: #1976d2;
+            border-color: #1976d2;
+        }
+        .header {
+            text-align: center;
+            margin-bottom: 40px;
+        }
+        .header h1 {
+            color: #1976d2;
+        }
+        .status-indicator {
+            width: 15px;
+            height: 15px;
+            border-radius: 50%;
+            display: inline-block;
+            margin-right: 5px;
+        }
+        .status-healthy {
+            background-color: #4caf50;
+        }
+        .status-warning {
+            background-color: #ff9800;
+        }
+        .status-error {
+            background-color: #f44336;
+        }
+        .status-unknown {
+            background-color: #9e9e9e;
+        }
+        .metric-value {
+            font-size: 24px;
+            font-weight: bold;
+        }
+        .metric-label {
+            font-size: 14px;
+            color: #aaaaaa;
+        }
+        .log-container {
+            background-color: #2d2d2d;
+            padding: 15px;
+            border-radius: 5px;
+            max-height: 300px;
+            overflow-y: auto;
+            font-family: monospace;
+        }
+        .log-entry {
+            margin-bottom: 5px;
+            border-bottom: 1px solid #444;
+            padding-bottom: 5px;
+        }
+        .log-time {
+            color: #888;
+            margin-right: 10px;
+        }
+        .log-level-info {
+            color: #2196f3;
+        }
+        .log-level-warning {
+            color: #ff9800;
+        }
+        .log-level-error {
+            color: #f44336;
+        }
+        .chart-container {
+            height: 200px;
+            margin-bottom: 20px;
+        }
+        .refresh-timer {
+            font-size: 12px;
+            color: #888;
+            text-align: right;
+            margin-top: 5px;
+        }
+        .service-action-btn {
+            padding: 2px 8px;
+            font-size: 12px;
+            margin-left: 5px;
+        }
+    </style>
+<script src="https://sites.super.myninja.ai/_assets/ninja-daytona-script.js"></script>
+</head>
+<body>
+    <div class="container mt-4">
+        <div class="header">
+            <h1>Stremio Management Panel</h1>
+            <p>Monitoring Dashboard</p>
+        </div>
+
+        <div class="row mb-4">
+            <div class="col-md-3">
+                <div class="card">
+                    <div class="card-body text-center">
+                        <div class="status-indicator status-unknown" id="api-status-indicator"></div>
+                        <div class="metric-value" id="api-status-value">-</div>
+                        <div class="metric-label">API Status</div>
+                    </div>
+                </div>
+            </div>
+            <div class="col-md-3">
+                <div class="card">
+                    <div class="card-body text-center">
+                        <div class="status-indicator status-unknown" id="db-status-indicator"></div>
+                        <div class="metric-value" id="db-status-value">-</div>
+                        <div class="metric-label">Database Status</div>
+                    </div>
+                </div>
+            </div>
+            <div class="col-md-3">
+                <div class="card">
+                    <div class="card-body text-center">
+                        <div class="status-indicator status-unknown" id="frontend-status-indicator"></div>
+                        <div class="metric-value" id="frontend-status-value">-</div>
+                        <div class="metric-label">Frontend Status</div>
+                    </div>
+                </div>
+            </div>
+            <div class="col-md-3">
+                <div class="card">
+                    <div class="card-body text-center">
+                        <div class="status-indicator status-unknown" id="nginx-status-indicator"></div>
+                        <div class="metric-value" id="nginx-status-value">-</div>
+                        <div class="metric-label">Nginx Status</div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <div class="row mb-4">
+            <div class="col-md-6">
+                <div class="card">
+                    <div class="card-header d-flex justify-content-between align-items-center">
+                        <span>System Resources</span>
+                        <button class="btn btn-sm btn-primary" id="refresh-resources-btn">Refresh</button>
+                    </div>
+                    <div class="card-body">
+                        <div class="row">
+                            <div class="col-md-6">
+                                <div class="mb-3">
+                                    <div class="metric-label">CPU Usage</div>
+                                    <div class="progress">
+                                        <div class="progress-bar bg-primary" id="cpu-usage-bar" role="progressbar" style="width: 0%;" aria-valuenow="0" aria-valuemin="0" aria-valuemax="100">0%</div>
+                                    </div>
+                                </div>
+                                <div class="mb-3">
+                                    <div class="metric-label">Memory Usage</div>
+                                    <div class="progress">
+                                        <div class="progress-bar bg-success" id="memory-usage-bar" role="progressbar" style="width: 0%;" aria-valuenow="0" aria-valuemin="0" aria-valuemax="100">0%</div>
+                                    </div>
+                                </div>
+                                <div class="mb-3">
+                                    <div class="metric-label">Disk Usage</div>
+                                    <div class="progress">
+                                        <div class="progress-bar bg-warning" id="disk-usage-bar" role="progressbar" style="width: 0%;" aria-valuenow="0" aria-valuemin="0" aria-valuemax="100">0%</div>
+                                    </div>
+                                </div>
+                            </div>
+                            <div class="col-md-6">
+                                <div class="mb-3">
+                                    <div class="metric-label">System Uptime</div>
+                                    <div class="metric-value" id="system-uptime-value">-</div>
+                                </div>
+                                <div class="mb-3">
+                                    <div class="metric-label">API Uptime</div>
+                                    <div class="metric-value" id="api-uptime-value">-</div>
+                                </div>
+                                <div class="mb-3">
+                                    <div class="metric-label">Node.js Version</div>
+                                    <div class="metric-value" id="nodejs-version-value">-</div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            <div class="col-md-6">
+                <div class="card">
+                    <div class="card-header d-flex justify-content-between align-items-center">
+                        <span>Database Statistics</span>
+                        <button class="btn btn-sm btn-primary" id="refresh-db-btn">Refresh</button>
+                    </div>
+                    <div class="card-body">
+                        <div class="row">
+                            <div class="col-md-6">
+                                <div class="mb-3">
+                                    <div class="metric-label">Total Collections</div>
+                                    <div class="metric-value" id="db-collections-value">-</div>
+                                </div>
+                                <div class="mb-3">
+                                    <div class="metric-label">Database Size</div>
+                                    <div class="metric-value" id="db-size-value">-</div>
+                                </div>
+                            </div>
+                            <div class="col-md-6">
+                                <div class="mb-3">
+                                    <div class="metric-label">Total Documents</div>
+                                    <div class="metric-value" id="db-documents-value">-</div>
+                                </div>
+                                <div class="mb-3">
+                                    <div class="metric-label">Avg Object Size</div>
+                                    <div class="metric-value" id="db-avg-object-size-value">-</div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <div class="row mb-4">
+            <div class="col-md-12">
+                <div class="card">
+                    <div class="card-header d-flex justify-content-between align-items-center">
+                        <span>Service Management</span>
+                        <button class="btn btn-sm btn-primary" id="refresh-services-btn">Refresh</button>
+                    </div>
+                    <div class="card-body">
+                        <table class="table table-dark table-striped">
+                            <thead>
+                                <tr>
+                                    <th>Service</th>
+                                    <th>Status</th>
+                                    <th>Uptime</th>
+                                    <th>Memory</th>
+                                    <th>CPU</th>
+                                    <th>Actions</th>
+                                </tr>
+                            </thead>
+                            <tbody id="services-table-body">
+                                <tr>
+                                    <td>stremio-panel-backend</td>
+                                    <td><span class="badge bg-secondary">Unknown</span></td>
+                                    <td>-</td>
+                                    <td>-</td>
+                                    <td>-</td>
+                                    <td>
+                                        <button class="btn btn-sm btn-success service-action-btn">Start</button>
+                                        <button class="btn btn-sm btn-warning service-action-btn">Restart</button>
+                                        <button class="btn btn-sm btn-danger service-action-btn">Stop</button>
+                                    </td>
+                                </tr>
+                                <tr>
+                                    <td>stremio-panel-frontend</td>
+                                    <td><span class="badge bg-secondary">Unknown</span></td>
+                                    <td>-</td>
+                                    <td>-</td>
+                                    <td>-</td>
+                                    <td>
+                                        <button class="btn btn-sm btn-success service-action-btn">Start</button>
+                                        <button class="btn btn-sm btn-warning service-action-btn">Restart</button>
+                                        <button class="btn btn-sm btn-danger service-action-btn">Stop</button>
+                                    </td>
+                                </tr>
+                                <tr>
+                                    <td>mongodb</td>
+                                    <td><span class="badge bg-secondary">Unknown</span></td>
+                                    <td>-</td>
+                                    <td>-</td>
+                                    <td>-</td>
+                                    <td>
+                                        <button class="btn btn-sm btn-success service-action-btn">Start</button>
+                                        <button class="btn btn-sm btn-warning service-action-btn">Restart</button>
+                                        <button class="btn btn-sm btn-danger service-action-btn">Stop</button>
+                                    </td>
+                                </tr>
+                                <tr>
+                                    <td>nginx</td>
+                                    <td><span class="badge bg-secondary">Unknown</span></td>
+                                    <td>-</td>
+                                    <td>-</td>
+                                    <td>-</td>
+                                    <td>
+                                        <button class="btn btn-sm btn-success service-action-btn">Start</button>
+                                        <button class="btn btn-sm btn-warning service-action-btn">Restart</button>
+                                        <button class="btn btn-sm btn-danger service-action-btn">Stop</button>
+                                    </td>
+                                </tr>
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <div class="row mb-4">
+            <div class="col-md-12">
+                <div class="card">
+                    <div class="card-header d-flex justify-content-between align-items-center">
+                        <span>System Logs</span>
+                        <div>
+                            <select class="form-select form-select-sm d-inline-block w-auto me-2" id="log-filter">
+                                <option value="all">All Logs</option>
+                                <option value="error">Errors Only</option>
+                                <option value="backend">Backend</option>
+                                <option value="frontend">Frontend</option>
+                                <option value="nginx">Nginx</option>
+                                <option value="mongodb">MongoDB</option>
+                            </select>
+                            <button class="btn btn-sm btn-primary" id="refresh-logs-btn">Refresh</button>
+                        </div>
+                    </div>
+                    <div class="card-body">
+                        <div class="log-container" id="log-container">
+                            <div class="log-entry">
+                                <span class="log-time">2025-08-21 03:33:41</span>
+                                <span class="log-level-info">INFO</span>
+                                <span class="log-message">Monitoring dashboard initialized</span>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <div class="row mb-4">
+            <div class="col-md-12">
+                <div class="card">
+                    <div class="card-header d-flex justify-content-between align-items-center">
+                        <span>Health Check</span>
+                        <button class="btn btn-sm btn-primary" id="run-health-check-btn">Run Health Check</button>
+                    </div>
+                    <div class="card-body">
+                        <div class="mb-3">
+                            <div class="metric-label">Last Health Check</div>
+                            <div class="metric-value" id="last-health-check-value">Never</div>
+                        </div>
+                        <div class="mb-3">
+                            <div class="metric-label">Health Check Status</div>
+                            <div class="metric-value" id="health-check-status-value">Unknown</div>
+                        </div>
+                        <div class="mb-3">
+                            <div class="metric-label">Health Check Results</div>
+                            <pre class="log-container" id="health-check-results">No health check has been run yet.</pre>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <div class="refresh-timer">
+            Auto-refresh in <span id="refresh-countdown">30</span> seconds
+            <button class="btn btn-sm btn-link" id="manual-refresh-btn">Refresh Now</button>
+        </div>
+    </div>
+
+    <script>
+        // Mock data for demonstration
+        const mockData = {
+            apiStatus: {
+                status: 'ok',
+                uptime: 3600,
+                memoryUsage: {
+                    rss: 50000000,
+                    heapTotal: 30000000,
+                    heapUsed: 20000000,
+                    external: 1000000
+                },
+                nodeVersion: 'v16.14.0'
+            },
+            dbStatus: {
+                status: 'connected',
+                stats: {
+                    collections: 5,
+                    objects: 120,
+                    avgObjSize: 1024,
+                    dataSize: 122880,
+                    storageSize: 200000
+                }
+            },
+            systemResources: {
+                cpu: 35,
+                memory: 42,
+                disk: 28,
+                uptime: 259200 // 3 days in seconds
+            },
+            services: [
+                {
+                    name: 'stremio-panel-backend',
+                    status: 'online',
+                    uptime: '2d 5h 12m',
+                    memory: '45.2 MB',
+                    cpu: '0.5%'
+                },
+                {
+                    name: 'stremio-panel-frontend',
+                    status: 'online',
+                    uptime: '2d 5h 10m',
+                    memory: '32.8 MB',
+                    cpu: '0.3%'
+                },
+                {
+                    name: 'mongodb',
+                    status: 'online',
+                    uptime: '5d 12h 45m',
+                    memory: '120.5 MB',
+                    cpu: '1.2%'
+                },
+                {
+                    name: 'nginx',
+                    status: 'online',
+                    uptime: '5d 12h 45m',
+                    memory: '10.2 MB',
+                    cpu: '0.1%'
+                }
+            ],
+            logs: [
+                {
+                    time: '2025-08-21 03:30:15',
+                    level: 'info',
+                    source: 'backend',
+                    message: 'Server started on port 5000'
+                },
+                {
+                    time: '2025-08-21 03:30:20',
+                    level: 'info',
+                    source: 'frontend',
+                    message: 'Frontend server started on port 3000'
+                },
+                {
+                    time: '2025-08-21 03:31:05',
+                    level: 'warning',
+                    source: 'backend',
+                    message: 'High memory usage detected (80%)'
+                },
+                {
+                    time: '2025-08-21 03:32:12',
+                    level: 'error',
+                    source: 'mongodb',
+                    message: 'Connection temporarily lost, reconnecting...'
+                },
+                {
+                    time: '2025-08-21 03:32:18',
+                    level: 'info',
+                    source: 'mongodb',
+                    message: 'Connection re-established'
+                }
+            ],
+            healthCheck: {
+                lastRun: '2025-08-21 03:30:00',
+                status: 'HEALTHY',
+                results: `=== Stremio Management Panel Health Check ===
+2025-08-21 03:30:00
+----------------------------------------
+[✓] MongoDB is running
+[✓] Nginx is running
+[✓] Backend service is running
+[✓] Frontend service is running
+[✓] API is responding
+----------------------------------------
+Health check summary:
+MongoDB: OK
+Nginx: OK
+Backend: OK
+Frontend: OK
+API: OK
+Overall status: HEALTHY`
+            }
+        };
+
+        // Update UI with data
+        function updateUI(data) {
+            // Update API status
+            document.getElementById('api-status-indicator').className = `status-indicator status-${data.apiStatus.status === 'ok' ? 'healthy' : 'error'}`;
+            document.getElementById('api-status-value').textContent = data.apiStatus.status === 'ok' ? 'Online' : 'Offline';
+            
+            // Update DB status
+            document.getElementById('db-status-indicator').className = `status-indicator status-${data.dbStatus.status === 'connected' ? 'healthy' : 'error'}`;
+            document.getElementById('db-status-value').textContent = data.dbStatus.status === 'connected' ? 'Connected' : 'Disconnected';
+            
+            // Update frontend and nginx status based on services data
+            const frontendService = data.services.find(s => s.name === 'stremio-panel-frontend');
+            if (frontendService) {
+                document.getElementById('frontend-status-indicator').className = `status-indicator status-${frontendService.status === 'online' ? 'healthy' : 'error'}`;
+                document.getElementById('frontend-status-value').textContent = frontendService.status === 'online' ? 'Online' : 'Offline';
+            }
+            
+            const nginxService = data.services.find(s => s.name === 'nginx');
+            if (nginxService) {
+                document.getElementById('nginx-status-indicator').className = `status-indicator status-${nginxService.status === 'online' ? 'healthy' : 'error'}`;
+                document.getElementById('nginx-status-value').textContent = nginxService.status === 'online' ? 'Online' : 'Offline';
+            }
+            
+            // Update system resources
+            document.getElementById('cpu-usage-bar').style.width = `${data.systemResources.cpu}%`;
+            document.getElementById('cpu-usage-bar').textContent = `${data.systemResources.cpu}%`;
+            document.getElementById('cpu-usage-bar').setAttribute('aria-valuenow', data.systemResources.cpu);
+            
+            document.getElementById('memory-usage-bar').style.width = `${data.systemResources.memory}%`;
+            document.getElementById('memory-usage-bar').textContent = `${data.systemResources.memory}%`;
+            document.getElementById('memory-usage-bar').setAttribute('aria-valuenow', data.systemResources.memory);
+            
+            document.getElementById('disk-usage-bar').style.width = `${data.systemResources.disk}%`;
+            document.getElementById('disk-usage-bar').textContent = `${data.systemResources.disk}%`;
+            document.getElementById('disk-usage-bar').setAttribute('aria-valuenow', data.systemResources.disk);
+            
+            // Format uptime
+            const formatUptime = (seconds) => {
+                const days = Math.floor(seconds / 86400);
+                const hours = Math.floor((seconds % 86400) / 3600);
+                const minutes = Math.floor((seconds % 3600) / 60);
+                
+                let result = '';
+                if (days > 0) result += `${days}d `;
+                if (hours > 0 || days > 0) result += `${hours}h `;
+                result += `${minutes}m`;
+                
+                return result;
+            };
+            
+            document.getElementById('system-uptime-value').textContent = formatUptime(data.systemResources.uptime);
+            document.getElementById('api-uptime-value').textContent = formatUptime(data.apiStatus.uptime);
+            document.getElementById('nodejs-version-value').textContent = data.apiStatus.nodeVersion;
+            
+            // Update database statistics
+            if (data.dbStatus.stats) {
+                document.getElementById('db-collections-value').textContent = data.dbStatus.stats.collections;
+                document.getElementById('db-documents-value').textContent = data.dbStatus.stats.objects;
+                document.getElementById('db-size-value').textContent = formatBytes(data.dbStatus.stats.dataSize);
+                document.getElementById('db-avg-object-size-value').textContent = formatBytes(data.dbStatus.stats.avgObjSize);
+            }
+            
+            // Update services table
+            const servicesTableBody = document.getElementById('services-table-body');
+            servicesTableBody.innerHTML = '';
+            
+            data.services.forEach(service => {
+                const row = document.createElement('tr');
+                
+                const nameCell = document.createElement('td');
+                nameCell.textContent = service.name;
+                row.appendChild(nameCell);
+                
+                const statusCell = document.createElement('td');
+                const statusBadge = document.createElement('span');
+                statusBadge.className = `badge ${service.status === 'online' ? 'bg-success' : 'bg-danger'}`;
+                statusBadge.textContent = service.status === 'online' ? 'Online' : 'Offline';
+                statusCell.appendChild(statusBadge);
+                row.appendChild(statusCell);
+                
+                const uptimeCell = document.createElement('td');
+                uptimeCell.textContent = service.uptime;
+                row.appendChild(uptimeCell);
+                
+                const memoryCell = document.createElement('td');
+                memoryCell.textContent = service.memory;
+                row.appendChild(memoryCell);
+                
+                const cpuCell = document.createElement('td');
+                cpuCell.textContent = service.cpu;
+                row.appendChild(cpuCell);
+                
+                const actionsCell = document.createElement('td');
+                
+                const startBtn = document.createElement('button');
+                startBtn.className = 'btn btn-sm btn-success service-action-btn';
+                startBtn.textContent = 'Start';
+                startBtn.disabled = service.status === 'online';
+                actionsCell.appendChild(startBtn);
+                
+                const restartBtn = document.createElement('button');
+                restartBtn.className = 'btn btn-sm btn-warning service-action-btn';
+                restartBtn.textContent = 'Restart';
+                actionsCell.appendChild(restartBtn);
+                
+                const stopBtn = document.createElement('button');
+                stopBtn.className = 'btn btn-sm btn-danger service-action-btn';
+                stopBtn.textContent = 'Stop';
+                stopBtn.disabled = service.status !== 'online';
+                actionsCell.appendChild(stopBtn);
+                
+                row.appendChild(actionsCell);
+                
+                servicesTableBody.appendChild(row);
+            });
+            
+            // Update logs
+            const logContainer = document.getElementById('log-container');
+            logContainer.innerHTML = '';
+            
+            const logFilter = document.getElementById('log-filter').value;
+            
+            data.logs.forEach(log => {
+                // Apply filter
+                if (logFilter !== 'all') {
+                    if (logFilter === 'error' && log.level !== 'error') return;
+                    if (logFilter !== 'error' && log.source !== logFilter) return;
+                }
+                
+                const logEntry = document.createElement('div');
+                logEntry.className = 'log-entry';
+                
+                const logTime = document.createElement('span');
+                logTime.className = 'log-time';
+                logTime.textContent = log.time;
+                logEntry.appendChild(logTime);
+                
+                const logLevel = document.createElement('span');
+                logLevel.className = `log-level-${log.level}`;
+                logLevel.textContent = log.level.toUpperCase();
+                logEntry.appendChild(logLevel);
+                
+                const logSource = document.createElement('span');
+                logSource.style.marginLeft = '10px';
+                logSource.style.marginRight = '10px';
+                logSource.style.color = '#aaa';
+                logSource.textContent = `[${log.source}]`;
+                logEntry.appendChild(logSource);
+                
+                const logMessage = document.createElement('span');
+                logMessage.textContent = log.message;
+                logEntry.appendChild(logMessage);
+                
+                logContainer.appendChild(logEntry);
+            });
+            
+            // Update health check
+            document.getElementById('last-health-check-value').textContent = data.healthCheck.lastRun;
+            document.getElementById('health-check-status-value').textContent = data.healthCheck.status;
+            document.getElementById('health-check-results').textContent = data.healthCheck.results;
+        }
+
+        // Format bytes to human-readable format
+        function formatBytes(bytes, decimals = 2) {
+            if (bytes === 0) return '0 Bytes';
+            
+            const k = 1024;
+            const dm = decimals < 0 ? 0 : decimals;
+            const sizes = ['Bytes', 'KB', 'MB', 'GB', 'TB'];
+            
+            const i = Math.floor(Math.log(bytes) / Math.log(k));
+            
+            return parseFloat((bytes / Math.pow(k, i)).toFixed(dm)) + ' ' + sizes[i];
+        }
+
+        // Initialize UI with mock data
+        updateUI(mockData);
+
+        // Set up auto-refresh countdown
+        let countdown = 30;
+        const countdownElement = document.getElementById('refresh-countdown');
+        
+        setInterval(() => {
+            countdown--;
+            countdownElement.textContent = countdown;
+            
+            if (countdown <= 0) {
+                countdown = 30;
+                updateUI(mockData); // In a real app, this would fetch fresh data
+            }
+        }, 1000);
+
+        // Set up button event listeners
+        document.getElementById('manual-refresh-btn').addEventListener('click', () => {
+            countdown = 30;
+            countdownElement.textContent = countdown;
+            updateUI(mockData); // In a real app, this would fetch fresh data
+        });
+
+        document.getElementById('refresh-resources-btn').addEventListener('click', () => {
+            // In a real app, this would fetch fresh system resource data
+            updateUI(mockData);
+        });
+
+        document.getElementById('refresh-db-btn').addEventListener('click', () => {
+            // In a real app, this would fetch fresh database stats
+            updateUI(mockData);
+        });
+
+        document.getElementById('refresh-services-btn').addEventListener('click', () => {
+            // In a real app, this would fetch fresh service status data
+            updateUI(mockData);
+        });
+
+        document.getElementById('refresh-logs-btn').addEventListener('click', () => {
+            // In a real app, this would fetch fresh logs
+            updateUI(mockData);
+        });
+
+        document.getElementById('run-health-check-btn').addEventListener('click', () => {
+            // In a real app, this would trigger a health check
+            document.getElementById('run-health-check-btn').disabled = true;
+            document.getElementById('run-health-check-btn').textContent = 'Running...';
+            
+            setTimeout(() => {
+                mockData.healthCheck.lastRun = new Date().toLocaleString();
+                updateUI(mockData);
+                document.getElementById('run-health-check-btn').disabled = false;
+                document.getElementById('run-health-check-btn').textContent = 'Run Health Check';
+            }, 2000);
+        });
+
+        document.getElementById('log-filter').addEventListener('change', () => {
+            updateUI(mockData);
+        });
+    </script>
+</body>
+</html>

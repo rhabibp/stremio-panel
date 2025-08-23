@@ -1,0 +1,126 @@
+# Stremio Management Panel Test Plan
+
+## 1. User Management Testing
+
+### 1.1 User Registration
+- [ ] Test user registration with valid credentials
+- [ ] Test user registration with invalid credentials (e.g., invalid email format)
+- [ ] Test user registration with existing username/email
+- [ ] Test user registration with different roles (admin, reseller, user)
+
+### 1.2 User Authentication
+- [ ] Test login with valid credentials
+- [ ] Test login with invalid credentials
+- [ ] Test token expiration and refresh
+- [ ] Test protected routes access with and without authentication
+
+### 1.3 User Management
+- [ ] Test creating a new user as admin
+- [ ] Test creating a new user as reseller
+- [ ] Test updating user details
+- [ ] Test changing user password
+- [ ] Test activating/deactivating a user
+- [ ] Test setting user expiration date
+- [ ] Test deleting a user
+
+### 1.4 Stremio Synchronization
+- [ ] Test syncing a user with existing Stremio account
+- [ ] Test registering a new Stremio account for a user
+- [ ] Test retrieving Stremio user status
+- [ ] Test handling invalid Stremio credentials
+
+## 2. Addon Management Testing
+
+### 2.1 Addon Creation
+- [ ] Test creating a new addon with valid manifest URL
+- [ ] Test creating a new addon with invalid manifest URL
+- [ ] Test addon validation process
+- [ ] Test importing official Stremio addons
+
+### 2.2 Addon Management
+- [ ] Test updating addon details
+- [ ] Test activating/deactivating an addon
+- [ ] Test making an addon public/private
+- [ ] Test deleting an addon
+
+### 2.3 Addon Assignment
+- [ ] Test assigning an addon to a user
+- [ ] Test removing an addon from a user
+- [ ] Test syncing addons with a user's Stremio account
+- [ ] Test bulk addon assignment
+
+## 3. Reseller Management Testing
+
+### 3.1 Reseller Creation
+- [ ] Test creating a new reseller
+- [ ] Test updating reseller details
+- [ ] Test activating/deactivating a reseller
+- [ ] Test deleting a reseller
+
+### 3.2 Credit Management
+- [ ] Test adding credits to a reseller
+- [ ] Test credit deduction when creating a user
+- [ ] Test preventing user creation when credits are insufficient
+
+### 3.3 User Management by Reseller
+- [ ] Test reseller creating a new user
+- [ ] Test reseller updating their users
+- [ ] Test reseller assigning addons to their users
+- [ ] Test reseller access restrictions (can only manage their own users)
+
+## 4. Integration Testing
+
+### 4.1 Stremio API Integration
+- [ ] Test full user registration and Stremio sync flow
+- [ ] Test addon assignment and sync with Stremio
+- [ ] Test handling Stremio API errors and rate limits
+
+### 4.2 End-to-End Workflows
+- [ ] Test complete user creation and addon assignment flow
+- [ ] Test reseller creation, credit assignment, and user management flow
+- [ ] Test addon creation, validation, and user assignment flow
+
+## 5. Performance and Security Testing
+
+### 5.1 Performance
+- [ ] Test application performance with large number of users
+- [ ] Test application performance with large number of addons
+- [ ] Test concurrent user operations
+
+### 5.2 Security
+- [ ] Test authentication and authorization mechanisms
+- [ ] Test input validation and sanitization
+- [ ] Test protection against common web vulnerabilities (XSS, CSRF)
+- [ ] Test proper error handling and logging
+
+## 6. UI/UX Testing
+
+### 6.1 Responsive Design
+- [ ] Test UI on different screen sizes
+- [ ] Test UI on different browsers
+
+### 6.2 Usability
+- [ ] Test navigation and user flows
+- [ ] Test form validations and error messages
+- [ ] Test loading states and progress indicators
+
+## Test Environment Setup
+
+1. Create a test database separate from production
+2. Set up test users with different roles (admin, reseller, user)
+3. Create test addons with valid and invalid manifest URLs
+4. Prepare test Stremio accounts for integration testing
+
+## Test Execution Guidelines
+
+1. Execute tests in the order specified in this plan
+2. Document any issues found during testing
+3. Retest fixed issues to ensure they are resolved
+4. Update test cases as needed based on application changes
+
+## Test Reporting
+
+1. Track test execution progress
+2. Document test results (pass/fail)
+3. Create detailed bug reports for failed tests
+4. Provide recommendations for improvements

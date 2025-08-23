@@ -1,0 +1,12 @@
+{
+  "name": "Proxy Plugin",
+  "version": "1.0.0",
+  "description": "Adds proxy functionality to route Stremio traffic through configurable proxies",
+  "author": "NinjaTech AI",
+  "license": "MIT",
+  "main": "init.js",
+  "dependencies": {
+    "http-proxy": "^1.18.1",
+    "http-proxy-middleware": "^2.0.6"
+  }
+}

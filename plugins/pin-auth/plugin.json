@@ -1,0 +1,13 @@
+{
+  "name": "PIN Authentication Plugin",
+  "version": "1.0.0",
+  "description": "Allows users to register and authenticate using the official Stremio app PIN system",
+  "author": "NinjaTech AI",
+  "license": "MIT",
+  "main": "init.js",
+  "dependencies": {
+    "qrcode": "^1.5.3",
+    "uuid": "^9.0.0",
+    "socket.io": "^4.7.2"
+  }
+}
