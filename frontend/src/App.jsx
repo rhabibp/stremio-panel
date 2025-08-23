@@ -39,7 +39,7 @@ const darkTheme = createTheme({
   },
 });
 
-function App() {
+function App({ plugins }) {
   return (
     <ThemeProvider theme={darkTheme}>
       <CssBaseline />
@@ -50,7 +50,7 @@ function App() {
           <Route path="/register" element={<Register />} />
           
           {/* Protected routes */}
-          <Route element={<ProtectedRoute><Layout /></ProtectedRoute>}>
+          <Route element={<ProtectedRoute><Layout menuItems={plugins.menuItems} /></ProtectedRoute>}>
             <Route path="/" element={<Navigate to="/dashboard" replace />} />
             <Route path="/dashboard" element={<Dashboard />} />
             
@@ -68,6 +68,11 @@ function App() {
             
             {/* Profile route */}
             <Route path="/profile" element={<Profile />} />
+
+            {/* Plugin routes */}
+            {plugins.routes.map(route => (
+              <Route key={route.path} path={route.path} element={<route.component />} />
+            ))}
           </Route>
           
           {/* 404 route */}

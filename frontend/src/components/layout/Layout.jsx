@@ -37,7 +37,7 @@ const AppBar = styled(MuiAppBar, {
   }),
 }));
 
-const Layout = () => {
+const Layout = ({ menuItems }) => {
   const [open, setOpen] = useState(true);
 
   const toggleDrawer = () => {
@@ -77,7 +77,7 @@ const Layout = () => {
           <UserMenu />
         </Toolbar>
       </AppBar>
-      <Sidebar open={open} toggleDrawer={toggleDrawer} />
+      <Sidebar open={open} toggleDrawer={toggleDrawer} menuItems={menuItems} />
       <Box
         component="main"
         sx={{

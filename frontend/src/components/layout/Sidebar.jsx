@@ -49,7 +49,7 @@ const Drawer = styled(MuiDrawer, { shouldForwardProp: (prop) => prop !== 'open' 
   }),
 );
 
-const Sidebar = ({ open, toggleDrawer }) => {
+const Sidebar = ({ open, toggleDrawer, menuItems }) => {
   const { currentUser, isAdmin, isReseller } = useAuth();
   const location = useLocation();
 
@@ -152,6 +152,27 @@ const Sidebar = ({ open, toggleDrawer }) => {
             <ListItemText primary="Settings" />
           </ListItemButton>
         )}
+
+        {/* Plugin Menu Items */}
+        {menuItems.map(item => {
+          if (item.showInSidebar && (!item.requiredRole || (item.requiredRole === 'admin' && isAdmin) || (item.requiredRole === 'reseller' && isReseller))) {
+            return (
+              <ListItemButton
+                key={item.path}
+                component={RouterLink}
+                to={item.path}
+                selected={isActive(item.path)}
+              >
+                <ListItemIcon>
+                  {/* You can add a generic icon here or map icons based on item.icon */}
+                  <SettingsIcon />
+                </ListItemIcon>
+                <ListItemText primary={item.name} />
+              </ListItemButton>
+            );
+          }
+          return null;
+        })}
       </List>
     </Drawer>
   );
